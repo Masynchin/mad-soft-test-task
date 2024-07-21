@@ -7,6 +7,9 @@ services:
     depends_on:
       - postgres
       - minio
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    restart: unless-stopped
   postgres:
     image: "postgres:15.7-alpine"
     environment:
