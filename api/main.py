@@ -6,10 +6,16 @@ from fastapi import FastAPI
 from fastapi import Form, HTTPException, UploadFile
 
 from api.database import MemeDatabase
+from api.minio import MemeMinio
 from api.schema import MemeGet, MemeCreated
 
 
 database = MemeDatabase(os.getenv("DATABASE_URL"))
+minio = MemeMinio(
+    url=os.getenv("MINIO_ENDPOINT_URL"),
+    access_key=os.getenv("MINIO_ACCESS_KEY"),
+    secret_key=os.getenv("MINIO_SECRET_KEY"),
+)
 
 
 @asynccontextmanager
@@ -41,7 +47,8 @@ async def post_meme(description: Annotated[str, Form()], image: UploadFile) -> M
     except HTTPException as e:
         raise e
 
-    meme_id = await database.create(description, "image_url")
+    image_url = minio.upload(image.filename, image.file, image.size, image.content_type)
+    meme_id = await database.create(description, image_url)
     return MemeCreated(id=meme_id)
 
 
@@ -64,7 +71,8 @@ async def put_meme(id: int, description: Annotated[str, Form()], image: UploadFi
     except HTTPException as e:
         raise e
 
-    await database.replace(id, description, "image_url")
+    image_url = minio.upload(image.filename, image.file, image.size, image.content_type)
+    await database.replace(id, description, image_url)
 
 
 @app.delete("/{id}", status_code=204)
