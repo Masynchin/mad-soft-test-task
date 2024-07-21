@@ -28,6 +28,9 @@ docker compose up --detach
 После этого API станет доступным по адресу `http://localhost:8000`,
 документация проекта по адресу `http://localhost:8000/docs`
 
+Просмотр изображений по их `image_url` происходит по адресу
+`http://localhost:8000/image/{image_url}`.
+
 ## ТЗ
 
 Разработайте веб-приложение на Python, используя FastAPI, которое предоставляет

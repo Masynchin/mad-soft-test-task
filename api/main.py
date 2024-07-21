@@ -2,8 +2,8 @@ import os
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import FastAPI
-from fastapi import Form, HTTPException, UploadFile
+from fastapi import FastAPI, Form, HTTPException, UploadFile
+from fastapi.responses import Response
 
 from api.database import MemeDatabase
 from api.minio import MemeMinio
@@ -78,3 +78,12 @@ async def put_meme(id: int, description: Annotated[str, Form()], image: UploadFi
 @app.delete("/{id}", status_code=204)
 async def delete_meme(id: int):
     await database.delete(id)
+
+
+@app.get("/image/{filename}")
+async def get_image(filename: str):
+    try:
+        image_bytes = minio.download(filename)
+        return Response(content=image_bytes, media_type="image")
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Could not find image")
